@@ -1,107 +1,132 @@
-class Doente :
-    def __init__(self, idade, sexo, tensao, colesterol, batimento, tem_doenca):
-    self.idade = idade
-    self.sexo = sexo
-    self.tensao = tensao
-    self.colesterol = colesterol
-    self.batimento = batimento
-    self.temDoenca = tem_doenca
+import re;
+
+def parsing():
+    regex_string=r"(?P<numero_processo>\d+)::(?P<data>\d{4}-\d{2}-\d{2})::(?P<nome>[\w\s]+)::(?P<pai>[\w\s]+)?::(?P<mae>[\w\s]+)?::(?P<obs>.*)?::"
+
+    r1=re.compile(regex_string)
+
+    processDirectory=[]
+
+    file= open ('processos.txt', 'r')
+    for linha in file.readlines():
+        match=r1.match(linha)
+        if match:
+            processDirectory.append(match.groupdict())
+    return processDirectory
+
+
+
+def processoAnos(processDirectory):
+    freq={} #Guardar frequencia de processos aqui
+    for processo in processDirectory:
+        ano= processo['data'] [:4] #Pegar no campo específico da data, neste caso ano
+        if ano not in freq:
+            freq[ano]=0 #Inicializar caso seja primeira ocorrência. Iniciar a 0 pois irá sempre incrementar 1 
+        freq[ano]+=1 
+    return freq
+
+def nomesPorSec(processDirectory):
+    reg_PrimeiroNome=r"(\w+)\s"
+    reg_UltimoNome=r"[\w\s]+\s(\w+)"
+
+    r1=re.compile(reg_PrimeiroNome)
+    r2=re.compile(reg_UltimoNome)
+
+    seculos={}
+
+    for processo in processDirectory:
+        seculo=0
+        ano= processo['data'] [:4]
+        if ano<1000:
+            seculo=1
+        else:
+            seculo=(ano//100)+1
+        if seculo not in seculos:
+            seculos[seculo]=0
+        nome= processo['nome']
+        if nome is not None:
+            primeiroNome= r1.match(nome).group(1)
+            ultimoNome= r2.match(nome).group(1)
+            if primeiroNome not in seculos[seculo]:
+                seculos[seculo][primeiroNome]=0
+            if ultimoNome not in seculos[seculo]:
+                seculos[seculo][ultimoNome]=0
+            seculos[seculo][primeiroNome]+=1
+            seculos[seculo][ultimoNome]+=1
+    return seculos
+
+def getGrau(obs):
+    graus={"Irmao", "Tio", "Sobrinho", "Primo", "Irmaos", "Pai", "Filho", "Sobrinhos", "Avo", "Neto", "Filhos", "Primos", "Bisavo"}
+
+    reg = r"\w+,(?P<grau>\w+)"
+    r = re.compile(reg)
+
+    grau= r.findall(obs)
+    grau=list(filter(lambda x: x in graus, grau))
+
+    return grau
+
+def tiposRelacao(processDirectory):
+        relacao={}
+
+        for processo in processDirectory:
+            observacoes=processo['obs']
+            graus_processo= getGrau(observacoes)
+            for grau in graus_processo:
+                if grau not in relacao:
+                    relacao[grau]=0
+                relacao[grau]+=1
+        return relacao
+
+def processoJson(processo):
+    res="{\n"
+    for campo in processo:
+        if campo is not None:
+            r+=f"\t\"{campo}\": \"{processo[campo]}\",\n"
+    return res + "}\n"
+
+def jsonConvert (out, processDirectory):
+    res="[\n"
+    for processo in processDirectory:
+        res+= processoJson(processo)
+    res+="]\n"
+
+    with open(out,"w") as file:
+        file.write(res)
+
+
+
+
+def main():
+
+    processDirectory= parsing()
+
+    frequencias_ano= list(processoAnos(processDirectory).items())
+    frequencias_ano.sort(key=lambda x:x[0])
+
+    frequencias_nome= list(nomesPorSec(processDirectory).items())
+    frequencias_nome.sort(key=lambda x: x[1], reverse=True)
+
+    frequencias_graus = list(tiposRelacao(processDirectory).items())
+    frequencias_graus.sort(key=lambda x: x[1], reverse=True)
+
+    option= input("-----Menu-----\n1. Calcular a frequência de processos por ano\n2. Top 5 de frequência de nomes próprios e apelidos por séculos\n3. Calcular frequência dos diferentes tipos de relação\n4. Converter os 20 primeiros registos num novo ficheiro de output em formato Json")
     
-    def __str__(self):
-        return f"Idade: {self.idade}, Sexo: {self.sexo}, Tensao: {self.tensao}, Colesterol: {self.colesterol}, Batimento: {self.batimento}, Tem Doenca: {self.temDoenca}"
-    
-    def read (file):
-        buffer_doentes=[]
-        maior_idade=0
-        maior_colestrol=0
-        menor_colestrol=0
+    match option:
+        case "1":
+            for (ano, value) in frequencias_ano:
+                print(f"{ano}: {value}")
+        case "2":
+            for (seculo, frequencias) in frequencias_nome:
+                print(f"Seculo {seculo}")
+                frequencias = list(frequencias.items())
+                frequencias.sort(key=lambda x: x[1], reverse=True)
+                for frequencia in frequencias[:5]:
+                    print(f"\t{frequencia[0]}: {frequencia[1]}")
 
-        with open (file, 'r') as f
-            f.readline()
-            for line in f:
-            line=line.restrip().split(,)
-            p=Doente=(int(line[0]), line[1], int (line[3]), int (line[4]), True if line[5]==1 else False) 
-            buffer_doentes.append(p)
-            if(p.idade>maior_idade):
-                maior_idade= p.idade
-            if (p.colestrol>maior_colestrol):
-                maior_colestrol=p.colestrol
-            if (p.colestrol < menor_colestrol):
-                menor_colestrol=p.colestrol
-
-        return buffer_doentes, maior_idade, maior_colestrol, menor_colestrol
-
-#distribuição por sexos
-    def dist_by_gender (buffer_doentes):
-        buffer_doentes= list(filter (lambda x: x.temDoenca, buffer_doentes))
-        total= len(buffer_doentes)
-        masc, fem= 0,0
-        masc, fem = list(filter(lambda x: x.sexo == 'M', buffer_doentes)), list(filter(lambda y: y.sexo == 'F', buffer_doentes))
-        masc= len(masc)
-        fem= len (fem)
-        return {"Masculino": (float(masc)/total), "Feminino": float(fem)/total}
-
-#distribuição por idades
-    def dist_by_age (buffer_doentes, limite_idade):
-        data = list(filter(lambda x: x.temDoenca, buffer_doentes))
-        total_doenca = len(data)
-        min_age = 30
-        max_age = limite_idade
-        age_array_size = 5
-        age_ranges = {f"[{age}-{age + age_array_size - 1}]": 0.0 
-                     for age in range(min_age, max_age + 1, age_array_size)}
-
-    for person in buffer_doentes:
-        for age_range in age_ranges.keys():
-            start, end = map(int, age_range[1:-1].split('-'))
-            if person.idade >= start and person.idade <= end:
-                age_ranges[age_range] += 1
-                break
-
-    for age_range in age_ranges.keys():
-        age_ranges[age_range] /= total_doenca
-    return age_ranges
-
-#distribuição por colesterol
-    def dist_by_colesterol (buffer_doentes, limite_sup_colesterol, limite_inf_colesterol):
-        data = list(filter(lambda x: x.temDoenca, buffer_doentes))
-        totalDoenca = len(buffer_doentes)
-        min = limite_inf_colesterol
-        max = limite_sup_colesterol
-        array_range_size = 11
-        colesterol_ranges = {f"[{colesterol}-{colesterol + array_range_size - 1}]": 0.0 
-                             for colesterol in range(min, max + 1, array_range_size)}
-
-        for person in buffer_doentes:
-            for colesterol_range in colesterol_ranges.keys():
-                start, end = map(int, colesterol_range[1:-1].split('-'))
-                if person.colesterol >= start and person.colesterol <= end:
-                    colesterol_ranges[colesterol_range] += 1
-                    break
-
-        for colesterol_range in colesterol_ranges.keys():
-            colesterol_ranges[colesterol_range] /= totalDoenca
-        return colesterol_ranges
-
-    def get_tabela(distribuicao):
-        res = ""
-        for key, value in distribuicao.items():
-            res += f"{key: ^20} | {(value * 100): ^20}\n"
-        return res
-
-    def main():
-    buffer_doentes, limite_idade, limite_sup_colesterol, limite_inf_colesterol = read_file('myheart.csv')
-    distribuicoes = {1: dist_by_gender(buffer_doentes), 2: dist_by_age (buffer_doentes, limite_idade), 3: dist_by_colesterol (buffer_doentes, limite_sup_colesterol, limite_inf_colesterol)}
-    escolha = 1
-    while escolha != 0:
-        escolha = int(input("Qual distribuicao deseja visualizar: \n1 - Sexo\n2 - Idade\n3 - Colesterol\n0- Sair: "))
-        if escolha != 0:
-            distribuicao = distribuicoes[escolha]
-            print(get_tabela(distribuicao))
-
-if __name__ == "__main__":
-    main()
-
-
-
-
+        case "3":
+                for (grau, value) in frequencias_graus:
+                    print(f"{grau}: {value}")
+        case "4":
+                file = input("Nome do ficheiro: ")
+                jsonConvert(file, processDirectory[:20])
