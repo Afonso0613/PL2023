@@ -9,7 +9,7 @@ file=open (ficheiro)
 data=file.readlines()
 
 header=data[0]
-conteudo= data[:1]
+conteudo= data[1::]
 
 #padroes para expressões regulares
 padrao_header=r"Número,Nome,Curso(,?Notas?(?P<Notas>{\d,\d})?(?:::)?(?P<agregator>\w*)?(?:.*))?"
@@ -62,7 +62,7 @@ for line in conteudo:
             data_dict[info_c['Número']] = info_c
 
 try:
-    output = data_dict
+    output = list (data_dict.items())
     with open('alunos.json', 'w') as file:
         json.dump(output, file, indent=4)
     print('JSON file created sucessfully!')
