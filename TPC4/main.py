@@ -43,7 +43,7 @@ acumulado=0
 for line in conteudo:
     match_c=re.fullmatch(conteudoP, line)
 
-    if conteudoP:
+    if match_c:
         info_c=match_c.groupdict()
         notas = list(filter(str.strip, info_c['Notas'].split(',')))
         if limite[0] <= len(notas) <= limite[1]:
