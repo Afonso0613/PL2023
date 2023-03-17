@@ -4,8 +4,8 @@ import re
 
 op1=re.compile(r'LEVANTAR')
 op2=re.compile(r'POUSAR')
-op3=re.compile(r'MOEDA ([0-9]+(c|e))+')
-op4_1=re.compile(r'T=00[0-9]{9}')
+op3=re.compile(r'MOEDA\s+((\d+(c|e)(,\s*)?)+)')
+op4_1=re.compile(r'T=00[0-9]+')
 op4_2=re.compile(r'T=(601|604)[0-9]{6}')
 op4_3=re.compile(r'T=2[0-9]{8}')
 op4_4=re.compile(r'T=800[0-9]{6}')
@@ -21,16 +21,15 @@ def validar_moedas (lista_moedas):
     cent=0
     for element in lista_moedas:
         if element not in moedas:
-            print(str(element)+ 'nao e uma moeda valida. ')
-    else:
-        if 'c' in element:
-            aux=element.strip('c')
-            cent+= int(aux)
+            print(+str(element)+ ' não é uma moeda válida. ')
+        else:
+            if 'c' in element:
+                aux=element.strip('c')
+                cent+= int(aux)
         
-        if 'e' in element:
-            aux=element.strip('e')
-            euro+= int(aux)
-    ##print('O saldo e ' +str(euro)+'e'+str(cent)+'c')
+            if 'e' in element:
+                aux=element.strip('e')
+                euro+= int(aux)
     return euro,cent
     
 def comparar_montante (euro,cent,euro1, cent1):
@@ -52,89 +51,87 @@ def calcula_troco (euro, cent, euro1,cent1):
             return euro-(euro1+1), cent+(1-cent1)
 
 
-def deal_inputs (entrada):
+def deal_inputs ():
     exit=1
     e=0
     c=0
     trc=0,0
     montante=0,0
     levantou=0
+    entrada= input("Programa Iniciou\n")
 
     while exit !=0:
 
         if re.fullmatch(op1, entrada):
             levantou=1
-            entrada=input('Introduza moedas')
+            entrada=input('Introduza moedas\n')
 
         elif re.fullmatch(op2, entrada):
             if levantou==1:
-                print('troco= '+str(e)+'e'+str(c)+'c; Volte Sempre!')
+                print ("troco= "+ str(e)+ "e"+ str(c)+ "c; Volte Sempre!")
                 exit=0
             else:
-                entrada=input('Pegue primeiro no Telefone!')
+                entrada=input('Pegue primeiro no Telefone!\n')
 
         elif re.fullmatch(op3,entrada):
             if levantou==1:
                 res_1 = re.sub('MOEDA ', '', entrada)
                 res_2 = re.sub('\.','',res_1)
                 res_3= re.sub ('\,','',res_2)
-                lista_moedas= res_3.spli(' ')
+                lista_moedas= res_3.split(' ')
                 montante=validar_moedas(lista_moedas)
                 e+=montante[0]
                 c+=montante[1]
-                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c ')
+                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c \n')
             else:
-                entrada=input('Pegue primeiro no Telefone!')
+                entrada=input('Pegue primeiro no Telefone!\n')
                 
 
-        elif re.fullmatch(op4_1, entrada):
-            entrada= input('Numero invalido, introduza outro' )
+        elif re.fullmatch(op4_2, entrada):
+            entrada= input('Número inválido, introduza outro\n' )
 
-        if re.fullmatch(op4_2, entrada):
+        elif re.fullmatch(op4_1, entrada):
             if comparar_montante(e,c,1,50):
                 trc= calcula_troco(e,c,1,50)
                 e=trc[0]
                 c=trc[1]
-                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c ')
+                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c \n')
             else:
-                entrada= input('nao tem saldo suficiente, insira mais')
+                entrada= input('não tem saldo suficiente, insira mais\n')
 
-        if re.fullmatch(op4_3, entrada):
+        elif re.fullmatch(op4_3, entrada):
             if comparar_montante(e,c,0,25):
                 trc= calcula_troco(e,c,0,25)
                 e=trc[0]
                 c=trc[1]
-                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c ')
+                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c \n')
             else:
-                entrada= input('nao tem saldo suficiente, insira mais')
+                entrada= input('não tem saldo suficiente, insira mais\n')
         
-        if re.fullmatch(op4_4, entrada):
+        elif re.fullmatch(op4_4, entrada):
             if comparar_montante(e,c,0,0):
                 trc= calcula_troco(e,c,0,0)
                 e=trc[0]
                 c=trc[1]
-                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c ')
+                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c \n')
 
-        if re.fullmatch(op4_5, entrada):
+        elif re.fullmatch(op4_5, entrada):
             if comparar_montante(e,c,0,10):
                 trc= calcula_troco(e,c,0,10)
                 e=trc[0]
                 c=trc[1]
-                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c ')
+                entrada=input('saldo= ' +str(e)+'e'+str(c)+'c\n')
             else:
-                entrada= input('nao tem saldo suficiente, insira mais')
+                entrada= input('não tem saldo suficiente, insira mais\n')
 
-        if re.fullmatch(op5, entrada):  
-            print=('Operacao abortada. Dinheiro devolvido ') 
+        elif re.fullmatch(op5, entrada):  
+            print=('Operação abortada. Dinheiro devolvido \n') 
             exit=0
-             
+        else:
+            entrada=input("Input Inválido, introduza de novo\n")
 
+def main():
+    deal_inputs()
 
-        
-
-
-
-
-                
-
-
+if __name__== "__main__":
+    main()
