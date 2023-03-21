@@ -21,7 +21,7 @@ def validar_moedas (lista_moedas):
     cent=0
     for element in lista_moedas:
         if element not in moedas:
-            print(+str(element)+ ' não é uma moeda válida. ')
+            print(str(element)+ ' não é uma moeda válida. ')
         else:
             if 'c' in element:
                 aux=element.strip('c')
@@ -48,7 +48,7 @@ def calcula_troco (euro, cent, euro1,cent1):
         if cent>=cent1:
             return euro-euro1, cent-cent1
         else:
-            return euro-(euro1+1), cent+(1-cent1)
+            return euro-(euro1+1), cent+(100-cent1)
 
 
 def deal_inputs ():
@@ -68,7 +68,7 @@ def deal_inputs ():
 
         elif re.fullmatch(op2, entrada):
             if levantou==1:
-                print ("troco= "+ str(e)+ "e"+ str(c)+ "c; Volte Sempre!")
+                input("troco= "+ str(e)+ "e"+ str(c)+ "c; Volte Sempre!")
                 exit=0
             else:
                 entrada=input('Pegue primeiro no Telefone!\n')
@@ -82,6 +82,9 @@ def deal_inputs ():
                 montante=validar_moedas(lista_moedas)
                 e+=montante[0]
                 c+=montante[1]
+                if c>=100:
+                    e+=1
+                    c=c-100
                 entrada=input('saldo= ' +str(e)+'e'+str(c)+'c \n')
             else:
                 entrada=input('Pegue primeiro no Telefone!\n')
@@ -125,7 +128,7 @@ def deal_inputs ():
                 entrada= input('não tem saldo suficiente, insira mais\n')
 
         elif re.fullmatch(op5, entrada):  
-            print=('Operação abortada. Dinheiro devolvido \n') 
+            input ('Operação abortada. Dinheiro devolvido \n') 
             exit=0
         else:
             entrada=input("Input Inválido, introduza de novo\n")
